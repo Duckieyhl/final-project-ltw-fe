@@ -1,24 +1,44 @@
 import React from "react";
-import {Typography} from "@mui/material";
-
+import { Typography } from "@mui/material";
 import "./styles.css";
-import {useParams} from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext";
 
-/**
- * Define UserDetail, a React component of Project 4.
- */
 function UserDetail() {
-    const user = useParams();
-    return (
-        <>
-          <Typography variant="body1">
-            This should be the UserDetail view of the PhotoShare app. Since it is
-            invoked from React Router the params from the route will be in property match.
-            So this should show details of user: {user.userId}.
-            You can fetch the model for the user from models.userModel.
-          </Typography>
-        </>
-    );
+  const { userId } = useParams();
+  const [data, setData] = useState(null);
+  const { token } = useAuth();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch("http://localhost:8081/users/" + userId, {
+        method: "GET",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // ← gửi token
+        }
+      });
+      const result = await response.json();
+      setData(result);
+    };
+    fetchData();
+  }, [userId]);
+
+  if (!data) return <Typography>Loading...</Typography>;
+
+  const { first_name, last_name, location, description, occupation } = data;
+  return (
+    <div style={{ padding: 20 }}>
+      <Typography variant="h6">{first_name} {last_name}</Typography>
+      <Typography variant="body1">{location}</Typography>
+      <Typography variant="body1">{description}</Typography>
+      <Typography variant="body1">{occupation}</Typography>
+      <Link to={`/photos/${userId}`}>View Photos</Link>
+    </div>
+  );
 }
 
 export default UserDetail;
