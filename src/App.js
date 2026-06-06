@@ -10,7 +10,7 @@ import UserPhotos from "./components/UserPhotos";
 import Home from "./components/Home/Home.jsx";
 import Login from "./components/Login/Login.jsx";
 import { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./components/Context/AuthContext";
 
 // Component bảo vệ route
@@ -20,49 +20,45 @@ const ProtectedRoute = ({ element }) => {
 };
 
 function AppContent() {
-  const { user } = useAuth();
-
   return (
     <Router>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <TopBar />
-        </Grid>
-        <div className="main-topbar-buffer" />
+      <AppInner />
+    </Router>
+  );
+}
 
-        {/* Chỉ hiện UserList nếu đã login */}
-        {user && (
-          <Grid item sm={3}>
-            <Paper className="main-grid-item">
-              <UserList />
-            </Paper>
-          </Grid>
-        )}
+function AppInner() {
+  const { user } = useAuth();
+  const location = useLocation();
+  const isLoginPage = location.pathname === "/login";
 
-        <Grid item sm={user ? 9 : 12}>
+  return (
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <TopBar />
+      </Grid>
+      <div className="main-topbar-buffer" />
+
+      {user && !isLoginPage && (
+        <Grid item sm={3}>
           <Paper className="main-grid-item">
-            <Routes>
-              {/* Route public */}
-              <Route path="/login" element={<Login />} />
-
-              {/* Route cần login */}
-              <Route path="/users/:userId" element={
-                <ProtectedRoute element={<UserDetail />} />
-              } />
-              <Route path="/photos/:userId" element={
-                <ProtectedRoute element={<UserPhotos />} />
-              } />
-              <Route path="/users" element={
-                <ProtectedRoute element={<UserList />} />
-              } />
-
-              {/* Mặc định redirect về login */}
-              <Route path="*" element={<Navigate to="/login" />} />
-            </Routes>
+            <UserList />
           </Paper>
         </Grid>
+      )}
+
+      <Grid item sm={user && !isLoginPage ? 9 : 12}>
+        <Paper className="main-grid-item">
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/users/:userId" element={<ProtectedRoute element={<UserDetail />} />} />
+            <Route path="/photos/:userId" element={<ProtectedRoute element={<UserPhotos />} />} />
+            <Route path="/users" element={<ProtectedRoute element={<UserList />} />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        </Paper>
       </Grid>
-    </Router>
+    </Grid>
   );
 }
 

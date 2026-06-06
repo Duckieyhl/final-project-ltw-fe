@@ -6,13 +6,12 @@ import "./styles.css";
 
 function UserPhotos() {
   const { userId } = useParams();
-  const { token } = useAuth(); // lấy token từ context
+  const { token } = useAuth();
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [commentText, setCommentText] = useState({}); // lưu text theo photoId
+  const [commentText, setCommentText] = useState({});
 
-  // Tách fetchData ra ngoài useEffect
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -52,7 +51,6 @@ function UserPhotos() {
       body: JSON.stringify({ comment: text }),
     });
 
-    // Xóa input và fetch lại
     setCommentText(prev => ({ ...prev, [photoId]: "" }));
     fetchData();
   };
@@ -63,40 +61,55 @@ function UserPhotos() {
 
   return (
     <div style={{ padding: 20 }}>
-      {photos.map((photo) => (
-        <div key={photo._id} style={{ marginBottom: 30 }}>
-          <img
-            src={`http://localhost:8081/images/${photo.file_name}`}
-            alt={photo.file_name}
-            style={{ maxWidth: "100%", height: "auto", display: "block", marginBottom: 8 }}
-          />
-          <Typography variant="caption">
-            {new Date(photo.date_time).toLocaleString()}
-          </Typography>
 
-          {photo.comments?.map((c) => (
-            <div key={c._id} style={{ marginTop: 8, paddingLeft: 10 }}>
-              <Typography variant="body2">
-                <strong>{c.user?.first_name} {c.user?.last_name}</strong>: {c.comment}
-              </Typography>
-              <Typography variant="caption">
-                {new Date(c.date_time).toLocaleString()}
-              </Typography>
-            </div>
-          ))}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+        gap: 16
+      }}>
 
-          {/* Input thêm comment */}
-          <div style={{ marginTop: 10 }}>
-            <input
-              type="text"
-              placeholder="Thêm comment..."
-              value={commentText[photo._id] || ""}
-              onChange={(e) => setCommentText(prev => ({ ...prev, [photo._id]: e.target.value }))}
+        {photos.map((photo) => (
+          <div key={photo._id} style={{ border: "1px solid #eee", borderRadius: 8, overflow: "hidden" }}>
+
+            <img
+              src={`http://localhost:8081/images/${photo.file_name}`}
+              alt={photo.file_name}
+              style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }}
             />
-            <button onClick={() => handleAddComment(photo._id)}>+</button>
+
+            <div style={{ padding: 10 }}>
+              <Typography variant="caption" color="text.secondary">
+                {new Date(photo.date_time).toLocaleString()}
+              </Typography>
+
+              {photo.comments?.map((c) => (
+                <div key={c._id} style={{ marginTop: 8, paddingLeft: 10 }}>
+                  <Typography variant="body2">
+                    <strong>{c.user?.first_name} {c.user?.last_name}</strong>: {c.comment}
+                  </Typography>
+                  <Typography variant="caption">
+                    {new Date(c.date_time).toLocaleString()}
+                  </Typography>
+                </div>
+              ))}
+
+              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  placeholder="Thêm comment..."
+                  value={commentText[photo._id] || ""}
+                  onChange={(e) => setCommentText(prev => ({ ...prev, [photo._id]: e.target.value }))}
+                  style={{ flex: 1 }}
+                />
+                <button onClick={() => handleAddComment(photo._id)}>+</button>
+              </div>
+            </div>
+
           </div>
-        </div>
-      ))}
+        ))}
+
+      </div>
+
     </div>
   );
 }
